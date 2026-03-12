@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="es" class="h-full">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - Mercadeo PCB</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase/supabase-config.js"></script>
+  <script src="supabase/database.js"></script>
+  <!-- EmailJS para alertas por correo -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link href="styles.css" rel="stylesheet">
+  <style>
+    .orders-dropdown { position:absolute; top:100%; right:0; width:340px; background:rgba(15,23,42,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:999; max-height:480px; overflow-y:auto; display:none; }
+    .orders-dropdown.open { display:block; }
+    .order-notif-item { padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); cursor:pointer; transition:background .2s; }
+    .order-notif-item:hover { background:rgba(255,255,255,0.05); }
+    .order-notif-item.unread { border-left:3px solid #3b82f6; }
+    .toggle-switch { position:relative; display:inline-block; width:52px; height:28px; }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; inset:0; background:#374151; border-radius:28px; cursor:pointer; transition:.3s; }
+    .toggle-slider:before { content:''; position:absolute; height:20px; width:20px; left:4px; bottom:4px; background:white; border-radius:50%; transition:.3s; }
+    input:checked + .toggle-slider { background:#3b82f6; }
+    input:checked + .toggle-slider:before { transform:translateX(24px); }
+    .alert-banner { background:linear-gradient(135deg,#7f1d1d,#991b1b); border:1px solid #ef4444; border-radius:12px; padding:16px; margin-bottom:20px; }
+    .section-card { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px; margin-bottom:20px; }
+  </style>
+</head>
+
+<body class="h-full font-body overflow-auto">
+  <div class="min-h-full w-full">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass-card border-b border-white/10 shadow-lg">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-white/20 p-2">
+            <img src="galeria/image1.png" alt="Logo" class="w-full h-full object-contain">
+          </div>
+          <div>
+            <h1 class="font-display font-bold text-xl text-white">Panel de Administración</h1>
+            <p class="text-xs text-gray-400">Gestiona tu tienda</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <!-- Campana de Pedidos -->
+          <div class="relative">
+            <button id="orders-bell-btn" onclick="toggleOrdersDropdown()"
+              class="relative p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-xl" title="Pedidos nuevos">
+              🔔
+              <span id="orders-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
+            </button>
+            <!-- Dropdown de pedidos -->
+            <div id="orders-dropdown" class="orders-dropdown">
+              <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-[#0f172a]">
+                <span class="font-bold text-white">📋 Pedidos Nuevos</span>
+                <button onclick="markAllOrdersRead()" class="text-xs text-blue-400 hover:text-blue-300">Marcar todos leídos</button>
+              </div>
+              <div id="orders-notification-list">
+                <p class="text-center text-gray-500 text-sm py-8">No hay pedidos nuevos</p>
+              </div>
+            </div>
+          </div>
+
+          <button id="theme-toggle" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-xl"
+            title="Cambiar tema">
+            <span id="theme-icon">🌙</span>
+          </button>
+          <a href="index.html" class="text-sm text-gray-400 hover:text-white transition-colors">
+            🏠 Volver a la tienda
+          </a>
+          <button onclick="logout()" class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold">
+            🚪 Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="glass-card rounded-xl p-6 border border-white/10">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm mb-1">Total Productos</p>
+              <p id="total-products" class="text-3xl font-bold">0</p>
+            </div>
+            <div class="text-4xl">📦</div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-xl p-6 border border-white/10">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm mb-1">Categorías</p>
+              <p class="text-3xl font-bold">4</p>
+            </div>
+            <div class="text-4xl">🏷️</div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-xl p-6 border border-white/10">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-400 text-sm mb-1">Precio Promedio</p>
+              <p id="avg-price" class="text-3xl font-bold">$0.00</p>
+            </div>
+            <div class="text-4xl">💰</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Banner: Alerta de Stock Bajo -->
+      <div id="low-stock-banner" class="alert-banner hidden mb-6">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">⚠️</span>
+            <div>
+              <p class="font-bold text-white text-sm mb-1">Stock bajo detectado</p>
+              <div id="low-stock-list" class="text-xs text-red-200 space-y-0.5"></div>
+            </div>
+          </div>
+          <button onclick="sendLowStockEmail()" id="send-email-btn"
+            class="shrink-0 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors">
+            📧 Enviar alerta por correo
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Product Button -->
+      <div class="mb-6 flex justify-between items-center">
+        <h2 class="font-display text-2xl font-bold">Gestión de Productos</h2>
+        <button onclick="showAddProductModal()"
+          class="btn-primary px-6 py-3 rounded-lg font-semibold flex items-center gap-2">
+          <span>➕</span>
+          <span>Añadir Producto</span>
+        </button>
+      </div>
+
+      <!-- Products Table -->
+      <div class="glass-card rounded-xl border border-white/10 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-white/5 border-b border-white/10">
+              <tr>
+                <th class="px-6 py-4 text-left text-sm font-semibold">Foto</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold">Nombre</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold">Categoría</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold">Precio</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold">Stock</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold">Popular</th>
+                <th class="px-6 py-4 text-left text-sm font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="products-table-body">
+              <!-- Products will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== SECCIÓN CONFIGURACIÓN ===== -->
+      <h2 class="font-display text-2xl font-bold mt-10 mb-6">⚙️ Configuración & Alertas</h2>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- DECA Coop -->
+        <div class="section-card">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl">🏪</span>
+            <div>
+              <h3 class="font-bold text-white text-lg">DECA Coop</h3>
+              <p class="text-xs text-gray-400">Aviso emergente para clientes cuando estén abiertos</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-sm font-semibold text-gray-300">Estado de DECA Coop</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="deca-coop-toggle" onchange="toggleDecaCoop(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div id="deca-status-label" class="text-xs font-semibold text-gray-500 mb-4">🔴 Cerrado</div>
+          <label class="block text-sm font-semibold text-gray-300 mb-2">Mensaje del popup</label>
+          <textarea id="deca-message" rows="2" placeholder="¡DECA Coop está abierto ahora! 🏪"
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none resize-none mb-3"></textarea>
+          <button onclick="saveDecaCoop()"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg text-sm transition-colors">
+            💾 Guardar configuración DECA Coop
+          </button>
+        </div>
+
+        <!-- Alertas de Stock Bajo + Email -->
+        <div class="section-card">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl">📧</span>
+            <div>
+              <h3 class="font-bold text-white text-lg">Alertas de Stock</h3>
+              <p class="text-xs text-gray-400">Recibe un correo cuando el stock sea bajo (usa EmailJS gratis)</p>
+            </div>
+          </div>
+          <label class="block text-sm font-semibold text-gray-300 mb-1">Umbral stock bajo</label>
+          <input type="number" id="low-stock-threshold" value="5" min="1" max="50"
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm mb-3 focus:border-[#3b82f6] focus:outline-none">
+          <label class="block text-sm font-semibold text-gray-300 mb-1">Correo del administrador</label>
+          <input type="email" id="admin-email" placeholder="admin@ejemplo.com"
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm mb-3 placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none">
+          <details class="mb-3">
+            <summary class="text-xs text-gray-400 cursor-pointer hover:text-gray-300">🔑 Configuración EmailJS (click para expandir)</summary>
+            <div class="mt-2 space-y-2">
+              <input type="text" id="emailjs-service-id" value="service_aqtuyls" placeholder="Service ID (ej: service_xxxxx)"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none">
+              <input type="text" id="emailjs-template-id" value="template_ffaqp28" placeholder="Template ID (ej: template_xxxxx)"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none">
+              <input type="text" id="emailjs-public-key" value="mDtiMAcklOZwMjVPL" placeholder="Public Key (ej: xxxxxxxxxxxxxxx)"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none">
+              <a href="https://www.emailjs.com" target="_blank" class="text-xs text-blue-400 hover:underline">📖 Crear cuenta gratis en EmailJS →</a>
+            </div>
+          </details>
+          <button onclick="saveAlertSettings()"
+            class="w-full bg-green-700 hover:bg-green-600 text-white font-semibold py-2 rounded-lg text-sm transition-colors">
+            💾 Guardar configuración de alertas
+          </button>
+        </div>
+
+        <!-- Push Notifications -->
+        <div class="section-card lg:col-span-2">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-3xl">📲</span>
+            <div>
+              <h3 class="font-bold text-white text-lg">Push Notifications (Smartphones)</h3>
+              <p class="text-xs text-gray-400">Los clientes deben activar las notificaciones en la tienda. Desde aquí puedes enviar un mensaje a todos.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="sendTestPushNotification()"
+              class="bg-purple-700 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors">
+              🧪 Enviar notificación de prueba
+            </button>
+            <button onclick="sendDecaCoopPush()"
+              class="bg-blue-700 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors">
+              🏪 Notificar que DECA Coop está abierto
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="product-modal" class="modal-overlay">
+      <div
+        class="glass-card rounded-2xl p-8 max-w-2xl w-full border border-white/10 animate-slide-up max-h-[90vh] overflow-y-auto">
+        <h3 id="modal-title" class="font-display text-2xl font-bold mb-6">Añadir Producto</h3>
+
+        <form id="product-form" class="space-y-4">
+          <input type="hidden" id="product-id">
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-300 mb-2">Nombre del Producto</label>
+              <input type="text" id="product-name" required
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none transition-colors">
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-300 mb-2">Emoji</label>
+              <input type="text" id="product-emoji" required maxlength="2"
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-2xl text-center placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none transition-colors"
+                placeholder="🍬">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-300 mb-2">Precio ($)</label>
+              <input type="number" id="product-price" step="0.01" min="0" required
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none transition-colors">
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-300 mb-2">Categoría</label>
+              <select id="product-category" required
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#3b82f6] focus:outline-none transition-colors">
+                <option value="dulces">🍬 Dulces</option>
+                <option value="chocolates">🍫 Chocolates</option>
+                <option value="bebidas">🥤 Bebidas</option>
+                <option value="snacks">🍿 Snacks</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-300 mb-2">
+              📦 Stock (cantidad disponible)
+              <span class="text-gray-500 font-normal ml-1">— dejar vacío = ilimitado</span>
+            </label>
+            <input type="number" id="product-stock" min="0" step="1" placeholder="Ej: 20"
+              class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none transition-colors">
+          </div>
+
+          <!-- Foto del Producto -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-300 mb-2">📸 Foto del Producto</label>
+
+            <!-- Preview -->
+            <div id="image-preview-container" class="hidden mb-3 text-center">
+              <img id="image-preview" src="" alt="Preview"
+                class="w-28 h-28 object-contain mx-auto rounded-xl border border-white/10 bg-white/5 p-2">
+              <button type="button" onclick="clearImage()"
+                class="mt-2 text-xs text-red-400 hover:text-red-300 transition-colors">
+                ✕ Quitar foto
+              </button>
+            </div>
+
+            <!-- Subir archivo -->
+            <label class="flex items-center gap-3 w-full cursor-pointer bg-white/5 border border-dashed border-white/20 hover:border-[#3b82f6] rounded-lg px-4 py-3 transition-colors mb-2">
+              <span class="text-2xl">📁</span>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-white">Subir desde el dispositivo</p>
+                <p class="text-xs text-gray-400">JPG, PNG, WebP — máx. 2 MB</p>
+              </div>
+              <input type="file" id="product-image-file" accept="image/*" class="hidden" onchange="handleImageFile(this)">
+            </label>
+
+            <!-- O URL externa -->
+            <div class="flex items-center gap-2 text-gray-500 text-xs mb-2">
+              <div class="flex-1 h-px bg-white/10"></div>o pega una URL<div class="flex-1 h-px bg-white/10"></div>
+            </div>
+            <input type="url" id="product-image-url" placeholder="https://ejemplo.com/foto.jpg"
+              class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-[#3b82f6] focus:outline-none transition-colors text-sm"
+              oninput="handleImageUrl(this.value)">
+          </div>
+
+          <div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="product-popular" class="w-5 h-5 rounded">
+              <span class="text-sm font-semibold text-gray-300">Marcar como Popular</span>
+            </label>
+          </div>
+
+          <div class="flex gap-3 pt-4">
+            <button type="submit" class="btn-primary flex-1 text-white font-bold py-3 rounded-lg">
+              💾 Guardar Producto
+            </button>
+            <button type="button" onclick="closeProductModal()"
+              class="btn-secondary flex-1 py-3 rounded-lg font-semibold">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="admin.js"></script>
+</body>
+
+</html>

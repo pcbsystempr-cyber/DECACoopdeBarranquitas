@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mercadeo PCB - Supabase Setup</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      color: white;
+      padding: 2rem;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 2.5rem;
+    }
+    
+    h1 span {
+      color: #3b82f6;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .card h2 {
+      color: #3b82f6;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+    }
+    
+    .card p {
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    
+    .step {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 0.5rem;
+    }
+    
+    .step-number {
+      background: #3b82f6;
+      color: white;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 1rem;
+      flex-shrink: 0;
+    }
+    
+    .step-content h3 {
+      margin-bottom: 0.5rem;
+    }
+    
+    .step-content code {
+      background: rgba(59, 130, 246, 0.2);
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+    
+    .btn {
+      display: inline-block;
+      background: #3b82f6;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 0.5rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    
+    .btn:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+    
+    .btn-success {
+      background: #10b981;
+    }
+    
+    .btn-success:hover {
+      background: #059669;
+    }
+    
+    .btn-warning {
+      background: #f59e0b;
+    }
+    
+    .btn-warning:hover {
+      background: #d97706;
+    }
+    
+    .status {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .status.success {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+    }
+    
+    .status.error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+    }
+    
+    .status.warning {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid #f59e0b;
+    }
+    
+    .console-output {
+      background: #000;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.875rem;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .alert {
+      background: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid #3b82f6;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛒 Mercadeo PCB <span>Supabase Setup</span></h1>
+    
+    <div id="status-container"></div>
+    
+    <div class="card">
+      <h2>📋 Pasos de Configuración</h2>
+      
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Crear proyecto en Supabase</h3>
+          <p>Ve a <a href="https://supabase.com" target="_blank" style="color: #3b82f6;">supabase.com</a> y crea una cuenta o inicia sesión. Luego crea un nuevo proyecto.</p>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Ejecutar schema SQL</h3>
+          <p>En el panel de Supabase, ve a <strong>SQL Editor</strong> y ejecuta el contenido del archivo <code>supabase/schema.sql</code></p>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Obtener credenciales</h3>
+          <p>Ve a <strong>Settings</strong> → <strong>API</strong> y copia:</p>
+          <ul style="margin-left: 1.5rem; color: #94a3b8;">
+            <li>Project URL</li>
+            <li>anon public key</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Actualizar configuración</h3>
+          <p>Edita el archivo <code>supabase/supabase-config.js</code> y reemplaza:</p>
+          <ul style="margin-left: 1.5rem; color: #94a3b8;">
+            <li><code>YOUR_SUPABASE_PROJECT_URL</code></li>
+            <li><code>YOUR_SUPABASE_ANON_KEY</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>🔧 Herramientas</h2>
+      <button class="btn btn-success" onclick="testConnection()">✅ Probar Conexión</button>
+      <button class="btn btn-warning" onclick="syncData()">🔄 Sincronizar Datos</button>
+      <button class="btn" onclick="downloadData()">📥 Descargar Datos</button>
+      <button class="btn" onclick="getStats()">📊 Ver Estadísticas</button>
+    </div>
+    
+    <div class="card">
+      <h2>📝 Consola</h2>
+      <div class="console-output" id="console">
+// Los resultados aparecerán aquí...
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>📁 Archivos Creados</h2>
+      <ul style="color: #94a3b8; margin-left: 1.5rem;">
+        <li><code>supabase/schema.sql</code> - Estructura de la base de datos</li>
+        <li><code>supabase/supabase-config.js</code> - Configuración de conexión</li>
+        <li><code>supabase/database.js</code> - Módulo de base de datos</li>
+        <li><code>supabase/setup.js</code> - Script de configuración</li>
+      </ul>
+    </div>
+  </div>
+  
+  <!-- Supabase Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Configuration -->
+  <script src="supabase-config.js"></script>
+  <script src="database.js"></script>
+  <script src="setup.js"></script>
+  
+  <script>
+    function log(message, type = 'info') {
+      const consoleEl = document.getElementById('console');
+      const timestamp = new Date().toLocaleTimeString();
+      const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+      consoleEl.textContent += `\n[${timestamp}] ${prefix} ${message}`;
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+    
+    async function testConnection() {
+      log('Probando conexión a Supabase...');
+      
+      if (!SUPABASE_CONFIG.url || SUPABASE_CONFIG.url === 'YOUR_SUPABASE_PROJECT_URL') {
+        log('ERROR: URL no configurada en supabase-config.js', 'error');
+        showStatus('warning', '⚠️ Configura tu URL de Supabase primero');
+        return;
+      }
+      
+      if (!SUPABASE_CONFIG.anonKey || SUPABASE_CONFIG.anonKey === 'YOUR_SUPABASE_ANON_KEY') {
+        log('ERROR: Anon Key no configurada en supabase-config.js', 'error');
+        showStatus('warning', '⚠️ Configura tu anon key de Supabase primero');
+        return;
+      }
+      
+      const supabase = initSupabase();
+      if (!supabase) {
+        log('ERROR: No se pudo inicializar el cliente de Supabase', 'error');
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('config')
+          .select('*')
+          .eq('id', 'store_config')
+          .single();
+        
+        if (error) {
+          log('ERROR: ' + error.message, 'error');
+          showStatus('error', '❌ Error de conexión: ' + error.message);
+        } else {
+          log('¡Conexión exitosa! Store: ' + (data?.store_name || 'Desconocido'), 'success');
+          showStatus('success', '✅ ¡Conectado a Supabase exitosamente!');
+        }
+      } catch (err) {
+        log('ERROR: ' + err.message, 'error');
+        showStatus('error', '❌ Error: ' + err.message);
+      }
+    }
+    
+    async function syncData() {
+      log('Sincronizando datos con Supabase...');
+      await SUPABASE_SETUP.syncData();
+    }
+    
+    async function downloadData() {
+      log('Descargando datos desde Supabase...');
+      await SUPABASE_SETUP.loadToLocal();
+    }
+    
+    async function getStats() {
+      log('Obteniendo estadísticas...');
+      const stats = await SUPABASE_SETUP.getStats();
+      if (stats) {
+        log(`Estadísticas: ${stats.products} productos, ${stats.orders} pedidos, ${stats.users} usuarios`);
+      }
+    }
+    
+    function showStatus(type, message) {
+      const container = document.getElementById('status-container');
+      container.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+    
+    // Check initial config
+    if (SUPABASE_CONFIG.url === 'YOUR_SUPABASE_PROJECT_URL') {
+      showStatus('warning', '⚠️ Por favor configura tu URL de Supabase en supabase-config.js');
+    } else if (SUPABASE_CONFIG.anonKey === 'YOUR_SUPABASE_ANON_KEY') {
+      showStatus('warning', '⚠️ Por favor configura tu anon key de Supabase en supabase-config.js');
+    }
+  </script>
+</body>
+</html>
